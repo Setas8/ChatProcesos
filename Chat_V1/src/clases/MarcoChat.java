@@ -106,4 +106,3 @@ public class MarcoChat extends JFrame implements Runnable{
         }
     }
 }
-
