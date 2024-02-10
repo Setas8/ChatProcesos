@@ -17,18 +17,9 @@ public class Principal {
         } while(!addUsuarios(nombreUsuario));
 
 
-        MarcoChat hiloMarco = new MarcoChat(nombreUsuario);
-        Thread hiloCli = new Thread(hiloMarco);
+        MarcoChat marco = new MarcoChat(nombreUsuario);
 
 
-        hiloCli.start();
-
-
-        try {
-            hiloCli.join();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
 
     }
     private  static boolean addUsuarios(String nombre) {

@@ -7,7 +7,7 @@ import java.awt.event.ActionListener;
 
 
 ///////////////////////////////////////////////////////////////// implementar runnable
-public class MarcoChat extends JFrame implements Runnable{
+public class MarcoChat extends JFrame {
     private String nombreUsuario;
     private JPanel mainPanel;
     private JButton btnEnviar;
@@ -17,6 +17,7 @@ public class MarcoChat extends JFrame implements Runnable{
     private JLabel lblUsers;
     private JTextArea taUsers;
     private JTextArea taTextoChat;
+    private boolean desconectar = false;
 
     public MarcoChat(String nombreUsuario) {
 
@@ -45,6 +46,19 @@ public class MarcoChat extends JFrame implements Runnable{
 
         this.darNombreChat(nombreUsuario.toUpperCase());
 
+        
+
+
+
+
+        //Desconectar usuario
+        btnDesconect.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                desconectar = true;
+                System.exit(0);
+            }
+        });
 
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
     }
@@ -80,29 +94,4 @@ public class MarcoChat extends JFrame implements Runnable{
     }
 
 
-
-    private boolean desconectar = false;
-    ActionListener accionDesconectar = new ActionListener() {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            desconectar = true;
-
-        }
-    };
-
-    @Override
-    public void run() {
-
-        this.taUsers.append(nombreUsuario);
-
-        while (!desconectar){
-
-
-
-            btnDesconect.addActionListener(accionDesconectar);
-
-
-
-        }
-    }
 }
