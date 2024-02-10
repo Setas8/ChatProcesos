@@ -46,9 +46,25 @@ public class MarcoChat extends JFrame {
 
         this.darNombreChat(nombreUsuario.toUpperCase());
 
-        
+        // Añadir usuario ///////Mandarlo por TCP/UDP
+        taUsers.setText(nombreUsuario);
 
 
+        //
+        String user = nombreUsuario + "$-> ";
+
+        //Enviar mensajes al panel del chat   ///MAndarlo por TCP/UDP
+        btnEnviar.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+                //Sacar el texto a
+                //taTextoChat.setText(user + tfChat.getText() + "\n");
+                taTextoChat.append(user + tfChat.getText() + "\n");
+                //Limpiar el área de texto
+                tfChat.setText("");
+            }
+        });
 
 
         //Desconectar usuario
