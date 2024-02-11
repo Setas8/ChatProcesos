@@ -4,11 +4,27 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.util.HashSet;
+import java.util.Set;
 
-
-///////////////////////////////////////////////////////////////// implementar runnable
 public class MarcoChat extends JFrame {
-    private String nombreUsuario;
+    static Set<String> nombresUsuarios = new HashSet<>();
+    public static void main(String[] args) {
+
+        String nombreUser = "";
+        //Si el nombre está en el conjunto, se repite el JOptionPane
+        do{
+            nombreUser = JOptionPane.showInputDialog("Escribe tu nick");
+            MarcoChat chat = new MarcoChat(nombreUser);
+            chat.lanzarChat();
+        } while(!addUsuarios(nombreUser));
+    }
+
     private JPanel mainPanel;
     private JButton btnEnviar;
     private JButton btnDesconect;
@@ -18,12 +34,24 @@ public class MarcoChat extends JFrame {
     private JTextArea taUsers;
     private JTextArea taTextoChat;
     private boolean desconectar = false;
+    private String nombreUser;
+    private Socket sc;
+    private PrintWriter out;
 
-    public MarcoChat(String nombreUsuario) {
+    private final int PUERTO_SERVIDOR = 6001;
+    private final String HOST = "localhost";
 
+    public void lanzarChat(){
         this.setContentPane(mainPanel);
         this.setVisible(true);
-        this.setTitle("CHAT DE  " + nombreUsuario.toUpperCase());
+        this.setTitle("CHAT DE  " + nombreUser.toUpperCase());
+        conectarServidor();
+        mandarUsuariosConectados();
+
+    }
+    public MarcoChat(String nombreUsuario) {
+
+        this.nombreUser = nombreUsuario;
 
         Toolkit pantalla = Toolkit.getDefaultToolkit();
 
@@ -44,25 +72,31 @@ public class MarcoChat extends JFrame {
         //Impedir que se redimensione
         this.setResizable(false);
 
-        this.darNombreChat(nombreUsuario.toUpperCase());
+        this.darNombreChat(nombreUser.toUpperCase());
 
-        // Añadir usuario ///////Mandarlo por TCP/UDP
-        taUsers.setText(nombreUsuario);
-
-
-        //
-        String user = nombreUsuario + "$-> ";
+        this.setDefaultCloseOperation(EXIT_ON_CLOSE);
 
         //Enviar mensajes al panel del chat   ///MAndarlo por TCP/UDP
         btnEnviar.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
 
-                //Sacar el texto a
-                //taTextoChat.setText(user + tfChat.getText() + "\n");
-                taTextoChat.append(user + tfChat.getText() + "\n");
+                String user = nombreUsuario + "$-> ";
+
+                String mensaje = user + tfChat.getText() + "\n";
+                //Mandar el mensaje al otro
+                out.println(mensaje);
+
                 //Limpiar el área de texto
                 tfChat.setText("");
+
+//                //Puerto del cliente entre 3000 y 7000
+//                //Difícil que salgan iguales para más de una ejecución
+//                int port = (int)(Math.random()*3000) + 4000;
+//                Cliente c = new Cliente(port, mensa);
+//                Thread hilo = new Thread();
+//                hilo.start();
+
             }
         });
 
@@ -71,14 +105,54 @@ public class MarcoChat extends JFrame {
         btnDesconect.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                desconectar = true;
+                out.close();
+                try {
+                    sc.close();
+                } catch (IOException ioe) {
+                    throw new RuntimeException(ioe);
+                }
                 System.exit(0);
             }
         });
 
-        this.setDefaultCloseOperation(EXIT_ON_CLOSE);
+
     }
 
+    private void conectarServidor() {
+
+        try {
+            sc = new Socket(HOST, PUERTO_SERVIDOR);
+
+            out = new PrintWriter(sc.getOutputStream(), true);
+            out.println(nombreUser);
+
+            ClienteHilo ch = new ClienteHilo();
+            Thread hiloCli = new Thread(ch);
+            hiloCli.start();
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    private class ClienteHilo implements Runnable {
+
+        @Override
+        public void run() {
+            try {
+                BufferedReader in = new BufferedReader(new InputStreamReader(sc.getInputStream()));
+                String texto = "";
+                while ((texto = in.readLine()) != null){
+                    taTextoChat.append(texto + "\n");
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        }
+    }
     private String darNombreChat(String nombre) {
 
         this.lblChat.setText(nombre);
@@ -86,28 +160,19 @@ public class MarcoChat extends JFrame {
         return this.lblChat.getText();
     }
 
-    public JTextArea getTaUsers() {
-        return taUsers;
-    }
-    public void setTaUsers(JTextArea tfChat) {
-        this.taUsers = tfChat;
-    }
+    private void mandarUsuariosConectados() {
 
-    public JButton getBtnDesconect() {
-        return btnDesconect;
-    }
+       this.taUsers.append(nombreUser);
 
-    public JButton getBtnEnviar() {
-        return btnEnviar;
     }
+    //Añadir usuarios
+    private  static boolean addUsuarios(String nombre) {
 
-    public JTextField getTfChat() {
-        return tfChat;
+        boolean insertado = false;
+        if (nombresUsuarios.add(nombre))
+            insertado = true;
+
+        return insertado;
     }
-
-    public void setTfChat(JTextField tfChat) {
-        this.tfChat = tfChat;
-    }
-
 
 }
