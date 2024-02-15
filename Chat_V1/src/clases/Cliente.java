@@ -29,8 +29,11 @@ public class Cliente implements Runnable {
     }
     @Override
     public void run() {
+        BufferedReader in;
 
-        try(BufferedReader in = new BufferedReader(new InputStreamReader(scCliente.getInputStream()))){
+        try {
+            InputStreamReader input = new InputStreamReader(scCliente.getInputStream());
+            in = new BufferedReader(input);
             String nombreUser = in.readLine();
             server.emitirMensaje(nombreUser + " se unió al chat");
 
